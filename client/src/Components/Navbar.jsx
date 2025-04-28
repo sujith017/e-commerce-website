@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";  // Import useAuth hook
+
 
 const SimpleNavbar = () => {
+  const { user, logout } = useAuth();  // Get user state and logout function
+
+  const handleLogout = () => {
+    logout();  // Call logout when the button is clicked
+  };
   return (
     <nav
       className={`sticky top-0 z-50 transition-all duration-300 shadow-lg bg-white`}
@@ -29,8 +36,23 @@ const SimpleNavbar = () => {
           <li>
             <Link to="/contact" className="hover:text-red-500">Contact</Link>
           </li>
+          <li>
+            <Link to="/add-product" className="hover:text-red-500">Add Product</Link>
+          </li>
+          {/* Conditional rendering for login/logout */}
+          {!user ? (
+            <>
+              <li>
+                <Link to="/login" className="hover:text-red-500">Login</Link>
+              </li>
+              
+            </>
+          ) : (
+            <li>
+              <button onClick={handleLogout} className="hover:text-red-500">Logout</button>
+            </li>
+          )}
         </ul>
-
       </div>
     </nav>
   );

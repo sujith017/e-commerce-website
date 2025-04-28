@@ -1,11 +1,11 @@
-const Cracker = require("../models/ProductModel");
+const Product = require("../models/ProductModel");
 
-// Create a new cracker
+// Create a new Product
 const createProduct = async (req, res) => {
   try {
-    const newCracker = new Cracker(req.body);
-    const savedCracker = await newCracker.save();
-    res.status(201).json(savedCracker);
+    const newProduct = new Product(req.body);
+    const savedProduct = await newProduct.save();
+    res.status(201).json(savedProduct);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -13,18 +13,18 @@ const createProduct = async (req, res) => {
 
 const getAllProduct = async (req, res) => {
   try {
-    const crackers = await Cracker.find();
+    const products = await Product.find();
     const grouped = {};
-    crackers.forEach((cracker) => {
-      if (!grouped[cracker.crackerType]) {
-        grouped[cracker.crackerType] = [];
+    products.forEach((product) => {
+      if (!grouped[product.productType]) {
+        grouped[product.productType] = [];
       }
-      grouped[cracker.crackerType].push(cracker);
+      grouped[product.productType].push(product);
     });
 
     res.status(200).json(grouped);
   } catch (err) {
-    res.status(500).json({ message: "Error fetching crackers", error: err });
+    res.status(500).json({ message: "Error fetching Products", error: err });
   }
 };
 

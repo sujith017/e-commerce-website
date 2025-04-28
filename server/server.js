@@ -5,11 +5,14 @@ const cors = require("cors");
 const productRoutes = require("./routes/Products");
 const orderRoutes = require("./routes/order");
 const paymentRoutes = require("./routes/payment");
+const authRoutes = require("./routes/authRoutes");
+
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
+app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);

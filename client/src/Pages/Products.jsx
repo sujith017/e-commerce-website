@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import Order from "./Order";
 import axios from "axios";
 
-const CrackersPage = () => {
-  const [groupedCrackers, setGroupedCrackers] = useState({});
+const ProductsPage = () => {
+  const [groupedProducts, setGroupedProducts] = useState({});
   const [quantities, setQuantities] = useState({});
   const [showOrderPopup, setShowOrderPopup] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -11,10 +11,10 @@ const CrackersPage = () => {
     axios
       .get("http://localhost:5000/api/products/getall-products")
       .then((res) => {
-        setGroupedCrackers(res.data);
+        setGroupedProducts(res.data);
       })
       .catch((err) => {
-        console.error("Error fetching crackers", err);
+        console.error("Error fetching products", err);
       });
   }, []);
   const handleQuantityChange = (id, price, value) => {
@@ -35,13 +35,13 @@ const CrackersPage = () => {
 
     Object.entries(quantities).forEach(([id, { quantity, price }]) => {
       if (quantity > 0) {
-        const cracker = Object.values(groupedCrackers)
+        const product = Object.values(groupedProducts)
           .flat()
           .find((item) => item._id === id);
 
-        if (cracker) {
+        if (product) {
           selected.push({
-            name: cracker.name,
+            name: product.name,
             quantity,
             price,
             total: price * quantity,
@@ -52,13 +52,13 @@ const CrackersPage = () => {
 
     return selected;
   };
-  const getFilteredCrackers = () => {
-    if (!searchTerm.trim()) return groupedCrackers;
+  const getFilteredProducts = () => {
+    if (!searchTerm.trim()) return groupedProducts;
 
     const filtered = {};
-    Object.entries(groupedCrackers).forEach(([type, crackers]) => {
-      const matched = crackers.filter((cracker) =>
-        cracker.name.toLowerCase().includes(searchTerm.toLowerCase())
+    Object.entries(groupedProducts).forEach(([type, products]) => {
+      const matched = products.filter((product) =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
       if (matched.length > 0) {
         filtered[type] = matched;
@@ -99,7 +99,7 @@ const CrackersPage = () => {
           </div>
         </div>
 
-        {Object.keys(getFilteredCrackers()).map((type) => (
+        {Object.keys(getFilteredProducts()).map((type) => (
 
           <div key={type} className="mb-12">
             <div className="overflow-x-auto rounded-lg shadow-lg bg-white">
@@ -114,9 +114,9 @@ const CrackersPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {getFilteredCrackers()[type].map((cracker, index) => {
+                  {getFilteredProducts()[type].map((product, index) => {
 
-                    const { _id, image, name, price } = cracker;
+                    const { _id, image, name, price } = product;
                     const qty = quantities[_id]?.quantity || 0;
                     const total = qty * price;
 
@@ -197,4 +197,4 @@ const CrackersPage = () => {
   );
 };
 
-export default CrackersPage;
+export default ProductsPage;
