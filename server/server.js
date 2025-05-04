@@ -6,7 +6,7 @@ const productRoutes = require("./routes/Products");
 const orderRoutes = require("./routes/order");
 const paymentRoutes = require("./routes/payment");
 const authRoutes = require("./routes/authRoutes");
-
+const adminRoutes = require("./routes/admin");
 
 const app = express();
 app.use(express.json());
@@ -16,6 +16,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/admin",adminRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI)

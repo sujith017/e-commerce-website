@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";  // Import useAuth hook
 
 const SimpleNavbar = () => {
   const { user, logout } = useAuth();  // Get user state and logout function
-
+  console.log(user);
   const handleLogout = () => {
     logout();  // Call logout when the button is clicked
   };
@@ -31,13 +31,18 @@ const SimpleNavbar = () => {
             <Link to="/products" className="hover:text-red-500">Products</Link>
           </li>
           <li>
-            <Link to="/cart" className="hover:text-red-500">Cart</Link>
+            {/* <Link to="/cart" className="hover:text-red-500">Cart</Link> */}
           </li>
           <li>
             <Link to="/contact" className="hover:text-red-500">Contact</Link>
           </li>
           <li>
-            <Link to="/add-product" className="hover:text-red-500">Add Product</Link>
+            {/* <Link to="/add-product" className="hover:text-red-500">Add Product</Link> */}
+          </li>
+          <li>
+            <div className="hover:text-red-500"> 
+            👋  {user?.username || "Guest"}
+            </div>
           </li>
           {/* Conditional rendering for login/logout */}
           {!user ? (
@@ -45,11 +50,18 @@ const SimpleNavbar = () => {
               <li>
                 <Link to="/login" className="hover:text-red-500">Login</Link>
               </li>
-              
+
             </>
           ) : (
             <li>
-              <button onClick={handleLogout} className="hover:text-red-500">Logout</button>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+              >
+                 Logout
+              </button>
+
+
             </li>
           )}
         </ul>

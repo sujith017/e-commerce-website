@@ -8,7 +8,7 @@ import About from "./Pages/About";
 import Footer from "./Components/Footer";
 import AddProduct from "./Pages/AddProduct";
 import { AuthProvider } from "./context/AuthContext";  // Import AuthProvider
-import PrivateRoute from "./components/PrivateRoute";
+// import PrivateRoute from "./src/components/PrivateRoute";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 
@@ -26,7 +26,7 @@ function App() {
           <Route path="/about" element={<About />} />
 
           {/* Protect the AddProduct route with PrivateRoute */}
-          <Route path="/add-product" element={<PrivateRoute><AddProduct /></PrivateRoute>} />
+          {/* <Route path="/add-product" element={<AddProduct />} /> */}
 
           {/* Authentication routes */}
           <Route path="/login" element={<Login />} />
