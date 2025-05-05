@@ -18,11 +18,10 @@ const Order = ({ selectedItems = [], totalAmount = 0, closePopup }) => {
     script.onerror = () => console.error("Razorpay SDK failed to load");
     document.body.appendChild(script);
   }, []);
-
   const generateInvoice = () => {
     const doc = new jsPDF();
-    doc.text("🧾 Invoice - Vishal Super Market", 14, 15);
-
+    doc.text("Invoice - Vishal Super Market", 14, 15);
+  
     autoTable(doc, {
       head: [["Product", "Quantity", "Price", "Total"]],
       body: selectedItems.map((item) => [
@@ -31,15 +30,18 @@ const Order = ({ selectedItems = [], totalAmount = 0, closePopup }) => {
         `₹${item.price.toFixed(2)}`,
         `₹${item.total.toFixed(2)}`,
       ]),
+      startY: 25, // Ensure the table starts a bit lower than the header
     });
-
-    const y = doc.lastAutoTable.finalY || 30;
-    doc.text(`Total Amount: ₹${totalAmount.toFixed(2)}`, 14, y + 10);
-    doc.text(`Customer Name: ${name}`, 14, y + 20);
-    doc.text(`Phone: ${mobile}`, 14, y + 30);
-    doc.text(`Email: ${email}`, 14, y + 40);
-    doc.text(`Address: ${address}`, 14, y + 50);
-
+  
+    const y = doc.lastAutoTable.finalY + 10 || 40; // Add buffer after table
+  
+    const spacing = 20;
+    doc.text(`Total Amount: Rs.${totalAmount.toFixed(2)}`, 14, y);
+    doc.text(`Customer Name: ${name}`, 14, y + spacing);
+    doc.text(`Phone no : ${mobile}`, 14, y + spacing * 2);
+    doc.text(`Email: ${email}`, 14, y + spacing * 3);
+    doc.text(`Address: ${address}`, 14, y + spacing * 4);
+  
     doc.save("invoice.pdf");
   };
 
