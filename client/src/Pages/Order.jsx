@@ -28,13 +28,13 @@ const Order = ({ selectedItems = [], totalAmount = 0, closePopup }) => {
       body: selectedItems.map((item) => [
         item.name,
         item.quantity,
-        `₹${item.price}`,
-        `₹${item.total}`,
+        `₹${item.price.toFixed(2)}`,
+        `₹${item.total.toFixed(2)}`,
       ]),
     });
 
     const y = doc.lastAutoTable.finalY || 30;
-    doc.text(`Total Amount: ₹${totalAmount}`, 14, y + 10);
+    doc.text(`Total Amount: ₹${totalAmount.toFixed(2)}`, 14, y + 10);
     doc.text(`Customer Name: ${name}`, 14, y + 20);
     doc.text(`Phone: ${mobile}`, 14, y + 30);
     doc.text(`Email: ${email}`, 14, y + 40);
@@ -54,9 +54,12 @@ const Order = ({ selectedItems = [], totalAmount = 0, closePopup }) => {
       return;
     }
 
+    const roundedTotal = parseFloat(totalAmount.toFixed(2)); // Round to 2 decimal
+    const amountInPaise = Math.round(roundedTotal * 100); // Convert to paise
+
     const options = {
-      key: "rzp_test_4rdgre6savrrmw", // Replace with your Razorpay key
-      amount: totalAmount * 100,
+      key: "rzp_test_4rdgre6savrrmw", // Replace with your actual key
+      amount: amountInPaise,
       currency: "INR",
       name: "Vishal Super Market",
       description: "Order Payment",
@@ -68,7 +71,7 @@ const Order = ({ selectedItems = [], totalAmount = 0, closePopup }) => {
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
-            amount: totalAmount * 100,
+            amount: amountInPaise,
             customer_name: name,
             customer_email: email,
           });
@@ -80,7 +83,7 @@ const Order = ({ selectedItems = [], totalAmount = 0, closePopup }) => {
             items: selectedItems,
           });
 
-          generateInvoice(); // ✅ Generate invoice here
+          generateInvoice();
 
           alert("Order placed successfully!");
           setName("");
@@ -140,15 +143,18 @@ const Order = ({ selectedItems = [], totalAmount = 0, closePopup }) => {
         onChange={(e) => setAddress(e.target.value)}
         className="w-full border p-2 mb-4 rounded"
       ></textarea>
+
       <h4 className="text-lg font-semibold mb-2">Selected Items:</h4>
       <ul className="mb-4">
         {selectedItems.map((item, index) => (
           <li key={index} className="text-gray-700">
-            ✅ {item.name} — {item.quantity} × ₹{item.price} = ₹{item.total}
+            ✅ {item.name} — {item.quantity} × ₹{item.price} = ₹{item.total.toFixed(2)}
           </li>
         ))}
       </ul>
-      <div className="text-xl font-bold mb-4">💰 Total: ₹{totalAmount}</div>
+
+      <div className="text-xl font-bold mb-4">💰 Total: ₹{totalAmount.toFixed(2)}</div>
+
       <button
         onClick={handlePayment}
         disabled={!razorpayLoaded}
@@ -159,7 +165,7 @@ const Order = ({ selectedItems = [], totalAmount = 0, closePopup }) => {
         } text-white px-5 py-3 rounded-lg w-full`}
       >
         {razorpayLoaded
-          ? `Make Payment ₹${totalAmount}`
+          ? `Make Payment ₹${totalAmount.toFixed(2)}`
           : "Loading Payment Gateway..."}
       </button>
     </div>
