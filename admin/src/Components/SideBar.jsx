@@ -8,7 +8,7 @@ const AdminSidebar = () => {
       <h2 className="text-2xl font-bold mb-6 text-center">Admin Panel</h2>
 
       <NavLink
-        to="/admin/crackers"
+        to="/admin/Products"
         className={({ isActive }) =>
           `flex items-center gap-3 py-3 px-4 rounded-lg hover:bg-gray-700 ${
             isActive ? "bg-gray-700" : ""
@@ -16,7 +16,7 @@ const AdminSidebar = () => {
         }
       >
         <FaFire />
-        Crackers
+        Products
       </NavLink>
 
       <NavLink
