@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Order from "./Order";
 import axios from "axios";
+import { useCart } from "./CartContext";
 
 const ProductsPage = () => {
   const [groupedProducts, setGroupedProducts] = useState({});
-  const [quantities, setQuantities] = useState({});
   const [showOrderPopup, setShowOrderPopup] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const { quantities, handleQuantityChange } = useCart();
 
   useEffect(() => {
     axios
@@ -19,15 +21,15 @@ const ProductsPage = () => {
       });
   }, []);
 
-  const handleQuantityChange = (id, price, discount, value, stock) => {
-    let quantity = parseInt(value) || 0;
-    if (quantity > stock) quantity = stock;
-    const discountedPrice = price * (1 - (discount || 0) / 100);
-    setQuantities((prev) => ({
-      ...prev,
-      [id]: { quantity, price: discountedPrice },
-    }));
-  };
+  // const handleQuantityChange = (id, price, discount, value, stock) => {
+  //   let quantity = parseInt(value) || 0;
+  //   if (quantity > stock) quantity = stock;
+  //   const discountedPrice = price * (1 - (discount || 0) / 100);
+  //   setQuantities((prev) => ({
+  //     ...prev,
+  //     [id]: { quantity, price: discountedPrice },
+  //   }));
+  // };
 
   const getGrandTotal = () => {
     return Object.values(quantities).reduce(
@@ -39,19 +41,18 @@ const ProductsPage = () => {
   const getSelectedItems = () => {
     const selected = [];
     Object.entries(quantities).forEach(([id, { quantity, price }]) => {
-      if (quantity > 0) {
-        const product = Object.values(groupedProducts)
-          .flat()
-          .find((item) => item._id === id);
+      const product = Object.values(groupedProducts)
+        .flat()
+        .find(item => item._id === id);
 
-        if (product) {
-          selected.push({
-            name: product.name,
-            quantity,
-            price,
-            total: price * quantity,
-          });
-        }
+      if (product && quantity > 0) {
+        selected.push({
+          id: product._id, // ← Make sure this is included
+          name: product.name,
+          quantity,
+          price,
+          total: price * quantity
+        });
       }
     });
     return selected;
@@ -86,11 +87,12 @@ const ProductsPage = () => {
     setShowOrderPopup(false);
   };
 
+
   return (
     <div className="pt-16 px-8 relative">
       <div className="p-6 bg-gradient-to-br from-yellow-50 to-red-50 min-h-screen">
-        <div className="sticky flex flex-col justify-center items-center top-12 bg-transparent to-red-50 text-green-900 font-bold p-4 rounded-md text-center text-2xl mb-2">
-          <div className="mb-1 text-center">
+        <div className="mb-1 text-center">
+          <div className="sticky flex flex-col justify-center items-center top-12 bg-transparent to-red-50 text-green-900 font-bold p-4 rounded-md text-center text-2xl mb-2">
             <input
               type="text"
               placeholder="🔍 Search products by name..."
@@ -108,80 +110,92 @@ const ProductsPage = () => {
 
         {Object.keys(getFilteredProducts()).map((type) => (
           <div key={type} className="mb-12">
-            <div className="overflow-x-auto rounded-lg shadow-lg bg-white">
-              <table className="min-w-full text-center">
-                <thead className="bg-gray-100 border-b">
-                  <tr className="text-gray-700">
-                    <th className="p-4">Image</th>
-                    <th className="p-4">Name</th>
-                    <th className="p-4">Price</th>
-                    <th className="p-4">Discount</th>
-                    <th className="p-4">Stock</th>
-                    <th className="p-4">Quantity</th>
-                    <th className="p-4">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {getFilteredProducts()[type].map((product, index) => {
-                    const { _id, image, name, price, discount_percent = 0, stock = 0 } = product;
-                    const discountedPrice = price * (1 - discount_percent / 100);
-                    const qty = quantities[_id]?.quantity || 0;
-                    const total = qty * discountedPrice;
-                    const outOfStock = stock === 0;
+            {/* <h2 className="text-2xl font-bold mb-4 text-green-900">{type}</h2> */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {getFilteredProducts()[type].map((product) => {
+                const { _id, image, name, price, discount_percent = 0, stock = 0 } = product;
+                const outOfStock = stock === 0;
 
-                    return (
-                      <tr
-                        key={_id}
-                        className={`hover:bg-yellow-50 ${
-                          outOfStock
-                            ? "bg-red-100 text-red-700 font-semibold"
-                            : index % 2 === 0
-                            ? "bg-white"
-                            : "bg-gray-50"
-                        }`}
-                      >
-                        <td className="p-4">
-                          <img
-                            src={image}
-                            alt={name}
-                            className="h-20 w-20 object-cover mx-auto rounded shadow-md"
-                          />
-                        </td>
-                        <td className="p-4 text-lg font-medium">{name}</td>
-                        <td className="p-4 text-green-700 font-semibold">₹{price}</td>
-                        <td className="p-4 text-red-600 font-medium">{discount_percent}%</td>
-                        <td className="p-4 text-blue-700">{stock}</td>
-                        <td className="p-4">
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            value={qty}
-                            onChange={(e) =>
-                              handleQuantityChange(
-                                _id,
-                                price,
-                                discount_percent,
-                                e.target.value.replace(/\D/g, ""),
-                                stock
-                              )
-                            }
-                            className="w-20 text-center border border-gray-300 rounded-md py-1 px-2 focus:outline-none focus:ring-2 focus:ring-red-300"
-                            disabled={outOfStock}
-                          />
-                          {/* Uncomment below to show max stock warning
-                          {qty >= stock && stock > 0 && (
-                            <div className="text-xs text-red-500 mt-1">
-                              Max stock reached
-                            </div>
-                          )} */}
-                        </td>
-                        <td className="p-4 text-blue-800 font-semibold">₹{total.toFixed(2)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                return (
+                  <div key={_id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                    <Link
+                      to={`/products/${_id}`}
+                      className="block cursor-pointer"
+                    >
+                      <img
+                        src={image}
+                        alt={name}
+                        className="h-48 w-full object-cover rounded-t-lg"
+                      />
+                      <div className="p-4">
+                        <h3 className="text-xl font-semibold">{name}</h3>
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          <p className="text-green-700">₹{price}</p>
+                          <p className="text-red-600">{discount_percent}% off</p>
+                          <p className="text-blue-700 col-span-2">
+                            Stock: {stock} {outOfStock && "(Out of Stock)"}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                    <div className="p-4 border-t">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleQuantityChange(
+                            _id,
+                            price,
+                            discount_percent,
+                            Math.max((quantities[_id]?.quantity || 0) - 1, 0),
+                            stock
+                          )}
+                          className="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={outOfStock || (quantities[_id]?.quantity || 0) === 0}
+                          aria-label="Decrease quantity"
+                        >
+                          -
+                        </button>
+
+                        <input
+                          type="number"
+                          min="0"
+                          max={stock}
+                          value={quantities[_id]?.quantity || 0}
+                          onChange={(e) => handleQuantityChange(
+                            _id,
+                            price,
+                            discount_percent,
+                            e.target.value.replace(/\D/g, ""),
+                            stock
+                          )}
+                          className="w-20 px-3 py-2 border rounded text-center"
+                          disabled={outOfStock}
+                          placeholder="0"
+                        />
+
+                        <button
+                          onClick={() => handleQuantityChange(
+                            _id,
+                            price,
+                            discount_percent,
+                            Math.min((quantities[_id]?.quantity || 0) + 1, stock),
+                            stock
+                          )}
+                          className="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={outOfStock || (quantities[_id]?.quantity || 0) >= stock}
+                          aria-label="Increase quantity"
+                        >
+                          +
+                        </button>
+                      </div>
+                      {!outOfStock && (
+                        <p className="text-sm mt-1 text-gray-600 text-center">
+                          {/* Available: {stock} */}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}

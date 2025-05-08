@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useCart } from "./CartContext"; // Import the cart context
 
 const Order = ({ selectedItems = [], totalAmount = 0, closePopup }) => {
   const [name, setName] = useState("");
@@ -9,6 +10,7 @@ const Order = ({ selectedItems = [], totalAmount = 0, closePopup }) => {
   const [address, setAddress] = useState("");
   const [email, setEmail] = useState("");
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const { setQuantities } = useCart(); // Get cart context methods
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -18,6 +20,7 @@ const Order = ({ selectedItems = [], totalAmount = 0, closePopup }) => {
     script.onerror = () => console.error("Razorpay SDK failed to load");
     document.body.appendChild(script);
   }, []);
+
   const generateInvoice = () => {
     const doc = new jsPDF();
     doc.text("Invoice - Vishal Super Market", 14, 15);
@@ -45,6 +48,28 @@ const Order = ({ selectedItems = [], totalAmount = 0, closePopup }) => {
     doc.save("invoice.pdf");
   };
 
+  const updateStockInDatabase = async () => {
+    try {
+      await axios.put("http://localhost:5000/api/products/update-stock", {
+        items: selectedItems.map(item => ({
+          productId: item.id,
+          quantity: item.quantity
+        }))
+      });
+    } catch (error) {
+      console.error("Stock update failed:", error);
+      throw new Error("Failed to update product stock");
+    }
+  };
+
+  const clearCart = () => {
+    setQuantities({}); // Clear cart quantities
+    setName("");
+    setMobile("");
+    setAddress("");
+    setEmail("");
+  };
+
   const handlePayment = async () => {
     if (!razorpayLoaded) {
       alert("Payment system is not ready yet. Please try again in a moment.");
@@ -56,19 +81,18 @@ const Order = ({ selectedItems = [], totalAmount = 0, closePopup }) => {
       return;
     }
 
-    const roundedTotal = parseFloat(totalAmount.toFixed(2)); // Round to 2 decimal
-    const amountInPaise = Math.round(roundedTotal * 100); // Convert to paise
+    const roundedTotal = parseFloat(totalAmount.toFixed(2));
+    const amountInPaise = Math.round(roundedTotal * 100);
 
     const options = {
-      key: "rzp_test_4rdgre6savrrmw", // Replace with your actual key
+      key: "rzp_test_4rdgre6savrrmw",
       amount: amountInPaise,
       currency: "INR",
       name: "Vishal Super Market",
       description: "Order Payment",
       handler: async function (response) {
-        alert(`Payment successful: ${response.razorpay_payment_id}`);
-
         try {
+          // 1. Save payment details
           await axios.post("http://localhost:5000/api/payments/save-payment", {
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
@@ -78,6 +102,7 @@ const Order = ({ selectedItems = [], totalAmount = 0, closePopup }) => {
             customer_email: email,
           });
 
+          // 2. Place order
           await axios.post("http://localhost:5000/api/orders/place-order", {
             name,
             phone: mobile,
@@ -85,34 +110,32 @@ const Order = ({ selectedItems = [], totalAmount = 0, closePopup }) => {
             items: selectedItems,
           });
 
+          // 3. Update product stock
+          await updateStockInDatabase();
+
+          // 4. Generate invoice and clear cart
           generateInvoice();
-
+          clearCart();
+          
           alert("Order placed successfully!");
-          setName("");
-          setMobile("");
-          setAddress("");
-          setEmail("");
-
-          if (typeof closePopup === "function") {
-            closePopup();
-          }
+          if (typeof closePopup === "function") closePopup();
+          
         } catch (error) {
-          console.error("Error saving payment/order:", error);
-          alert("Something went wrong. Please try again.");
+          console.error("Order processing error:", error);
+          alert(`Error: ${error.response?.data?.message || error.message}`);
         }
       },
-      prefill: {
-        name,
-        email,
-        contact: mobile,
-      },
-      theme: {
-        color: "#f37254",
-      },
+      prefill: { name, email, contact: mobile },
+      theme: { color: "#f37254" },
     };
 
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+    try {
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      console.error("Razorpay initialization failed:", error);
+      alert("Failed to initialize payment gateway");
+    }
   };
 
   return (
