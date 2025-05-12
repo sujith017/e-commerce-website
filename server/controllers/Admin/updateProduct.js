@@ -7,7 +7,7 @@ const updateProduct = async (req, res) => {
 
     const product = await Product.findByIdAndUpdate(
       id,
-      { name, price, discount_percent, stock },
+      { name, price, discount_percent, stock }, // include type here
       { new: true }
     );
 

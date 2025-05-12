@@ -15,32 +15,43 @@ const ProductDetailsPage = () => {
             .catch(err => console.error(err));
     }, [id]);
 
-    if (!product) return <div>Loading...</div>;
+    if (!product) return <div className="text-center py-20 text-xl">Loading...</div>;
 
     return (
-        <div className="pt-16 px-8 min-h-screen bg-gradient-to-br from-yellow-50 to-red-50">
-            <div className="max-w-4xl mx-auto p-6">
+        <div className="pt-20 px-4 sm:px-8 lg:px-24 min-h-screen bg-gradient-to-br from-yellow-50 to-red-50">
+            <div className="max-w-6xl mx-auto space-y-6">
                 <button
                     onClick={() => navigate(-1)}
-                    className="mb-4 bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+                    className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-all duration-200"
                 >
                     ← Back
                 </button>
 
-                <div className="bg-white rounded-lg shadow-lg p-6">
-                    <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-96 object-cover rounded-lg"
-                    />
-                    <h1 className="text-3xl font-bold mt-4">{product.name}</h1>
-                    <div className="grid grid-cols-2 gap-4 mt-6">
-                        <p className="text-lg">Price: ₹{product.price}</p>
-                        <p className="text-lg text-red-600">Discount: {product.discount_percent}%</p>
-                        <p className="text-lg text-blue-700">Stock: {product.stock}</p>
-                        <div className="col-span-2">
-                            <label className="block mb-2">Quantity:</label>
-                            <div className="flex items-center gap-2">
+                <div className="bg-white rounded-2xl shadow-xl p-6 grid grid-cols-1 md:grid-cols-2 gap-10">
+                    {/* Product Image */}
+                    <div className="w-full h-[550px] overflow-hidden flex justify-center items-center">
+                        <img
+                            src={product.image}
+                            alt={product.name}
+                            className="object-contain w-full h-full rounded-xl"
+                        />
+                    </div>
+
+                    {/* Product Details */}
+                    <div className="space-y-5">
+                        <h1 className="text-4xl font-extrabold text-gray-900">{product.name}</h1>
+                        <p className="text-lg text-gray-700">{product.desc}</p>
+
+                        <div className="grid grid-cols-2 gap-4 text-lg mt-4">
+                            <p><span className="font-semibold">Price:</span> ₹{product.price}</p>
+                            <p className="text-red-600 font-semibold">Discount: {product.discount_percent}%</p>
+                            <p className="text-blue-700"><span className="font-semibold">Stock:</span> {product.stock}</p>
+                        </div>
+
+                        {/* Quantity Selector */}
+                        <div className="mt-4">
+                            <label className="block mb-2 text-lg font-medium">Quantity:</label>
+                            <div className="flex items-center gap-3">
                                 <button
                                     onClick={() => handleQuantityChange(
                                         product._id,
@@ -61,13 +72,15 @@ const ProductDetailsPage = () => {
                                     min="0"
                                     max={product.stock}
                                     value={quantities[product._id]?.quantity || 0}
-                                    onChange={(e) => handleQuantityChange(
-                                        product._id,
-                                        product.price,
-                                        product.discount_percent,
-                                        e.target.value.replace(/\D/g, ""), // Allow only numbers
-                                        product.stock
-                                    )}
+                                    onChange={(e) =>
+                                        handleQuantityChange(
+                                            product._id,
+                                            product.price,
+                                            product.discount_percent,
+                                            e.target.value.replace(/\D/g, ""),
+                                            product.stock
+                                        )
+                                    }
                                     className="w-20 px-3 py-1 border rounded text-center"
                                     disabled={product.stock === 0}
                                 />
@@ -87,11 +100,7 @@ const ProductDetailsPage = () => {
                                     +
                                 </button>
                             </div>
-                            {product.stock > 0 && (
-                                <p className="text-sm mt-1 text-gray-600 text-center">
-                                    {/* Available: {product.stock} */}
-                                </p>
-                            )}
+
                             <p className="mt-4 text-xl font-bold">
                                 Total: ₹{((quantities[product._id]?.quantity || 0) * product.price * (1 - product.discount_percent / 100)).toFixed(2)}
                             </p>

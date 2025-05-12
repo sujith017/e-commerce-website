@@ -21,16 +21,6 @@ const ProductsPage = () => {
       });
   }, []);
 
-  // const handleQuantityChange = (id, price, discount, value, stock) => {
-  //   let quantity = parseInt(value) || 0;
-  //   if (quantity > stock) quantity = stock;
-  //   const discountedPrice = price * (1 - (discount || 0) / 100);
-  //   setQuantities((prev) => ({
-  //     ...prev,
-  //     [id]: { quantity, price: discountedPrice },
-  //   }));
-  // };
-
   const getGrandTotal = () => {
     return Object.values(quantities).reduce(
       (total, item) => total + item.quantity * item.price,
@@ -47,7 +37,7 @@ const ProductsPage = () => {
 
       if (product && quantity > 0) {
         selected.push({
-          id: product._id, // ← Make sure this is included
+          id: product._id,
           name: product.name,
           quantity,
           price,
@@ -87,7 +77,6 @@ const ProductsPage = () => {
     setShowOrderPopup(false);
   };
 
-
   return (
     <div className="pt-16 px-8 relative">
       <div className="p-6 bg-gradient-to-br from-yellow-50 to-red-50 min-h-screen">
@@ -110,28 +99,35 @@ const ProductsPage = () => {
 
         {Object.keys(getFilteredProducts()).map((type) => (
           <div key={type} className="mb-12">
-            {/* <h2 className="text-2xl font-bold mb-4 text-green-900">{type}</h2> */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {getFilteredProducts()[type].map((product) => {
                 const { _id, image, name, price, discount_percent = 0, stock = 0 } = product;
                 const outOfStock = stock === 0;
+                const discountedPrice = price * (1 - discount_percent / 100);
 
                 return (
                   <div key={_id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
                     <Link
                       to={`/products/${_id}`}
-                      className="block cursor-pointer"
+                      className="block cursor-pointer relative"
                     >
                       <img
                         src={image}
                         alt={name}
-                        className="h-48 w-full object-cover rounded-t-lg"
+                        className="h-80 w-full object-contain rounded-t-lg"
                       />
+                      {discount_percent > 0 && (
+                        <div className="absolute top-0 left-0 bg-red-600 text-white py-1 px-3 text-sm rounded-br-lg">
+                          {discount_percent}% off
+                        </div>
+                      )}
                       <div className="p-4">
                         <h3 className="text-xl font-semibold">{name}</h3>
                         <div className="grid grid-cols-2 gap-2 mt-2">
-                          <p className="text-green-700">₹{price}</p>
-                          <p className="text-red-600">{discount_percent}% off</p>
+                          <p className="text-green-700">
+                            ₹{discountedPrice.toFixed(2)}{" "}
+                            <span className="line-through text-gray-400">₹{price}</span>
+                          </p>
                           <p className="text-blue-700 col-span-2">
                             Stock: {stock} {outOfStock && "(Out of Stock)"}
                           </p>
@@ -143,7 +139,7 @@ const ProductsPage = () => {
                         <button
                           onClick={() => handleQuantityChange(
                             _id,
-                            price,
+                            discountedPrice,
                             discount_percent,
                             Math.max((quantities[_id]?.quantity || 0) - 1, 0),
                             stock
@@ -162,7 +158,7 @@ const ProductsPage = () => {
                           value={quantities[_id]?.quantity || 0}
                           onChange={(e) => handleQuantityChange(
                             _id,
-                            price,
+                            discountedPrice,
                             discount_percent,
                             e.target.value.replace(/\D/g, ""),
                             stock
@@ -175,7 +171,7 @@ const ProductsPage = () => {
                         <button
                           onClick={() => handleQuantityChange(
                             _id,
-                            price,
+                            discountedPrice,
                             discount_percent,
                             Math.min((quantities[_id]?.quantity || 0) + 1, stock),
                             stock
@@ -205,7 +201,7 @@ const ProductsPage = () => {
             onClick={handleCheckout}
             className="bg-green-700 hover:bg-red-600 text-white px-6 py-3 rounded-lg text-xl shadow-lg"
           >
-            Proceed to Checkout
+             🛒  Proceed to Checkout
           </button>
         </div>
       </div>

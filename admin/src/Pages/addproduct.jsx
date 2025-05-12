@@ -4,8 +4,10 @@ import axios from 'axios';
 const AddProduct = () => {
   const [form, setForm] = useState({
     name: '',
+    desc: '',
     price: '',
     image: '',
+    type: '',
     discount_percent: '',
     stock: '',
   });
@@ -21,31 +23,35 @@ const AddProduct = () => {
     try {
       const res = await axios.post('http://localhost:5000/api/products/add-product', {
         name: form.name,
+        desc: form.desc,
         price: parseFloat(form.price),
         image: form.image,
-        discount_percent: parseFloat(form.discount_percent),
-        stock: parseInt(form.stock),
+        type: form.type,
+        discount_percent: form.discount_percent ? parseFloat(form.discount_percent) : 0,
+        stock: form.stock ? parseInt(form.stock) : 0,
       });
-      setMessage('Product added successfully!');
+      setMessage('✅ Product added successfully!');
       setForm({
         name: '',
+        desc: '',
         price: '',
         image: '',
+        type: '',
         discount_percent: '',
         stock: '',
       });
     } catch (error) {
-      setMessage('Failed to add product');
+      setMessage('❌ Failed to add product');
       console.error(error);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
       <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-lg">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">Add New Product</h2>
         {message && (
-          <div className="mb-4 text-sm text-green-600">{message}</div>
+          <div className="mb-4 text-sm font-medium text-green-600">{message}</div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -60,7 +66,17 @@ const AddProduct = () => {
             />
           </div>
           <div>
-            <label className="block text-gray-700">Price ($)</label>
+            <label className="block text-gray-700">Description</label>
+            <textarea
+              name="desc"
+              value={form.desc}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800"
+              rows="4"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700">Price (₹)</label>
             <input
               type="number"
               name="price"
@@ -81,6 +97,7 @@ const AddProduct = () => {
               required
             />
           </div>
+          
           <div>
             <label className="block text-gray-700">Discount (%)</label>
             <input
@@ -91,7 +108,6 @@ const AddProduct = () => {
               min="0"
               max="100"
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800"
-              required
             />
           </div>
           <div>
@@ -103,7 +119,6 @@ const AddProduct = () => {
               onChange={handleChange}
               min="0"
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-800"
-              required
             />
           </div>
           <button
